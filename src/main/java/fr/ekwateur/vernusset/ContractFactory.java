@@ -7,7 +7,7 @@ import java.util.function.Predicate;
 public class ContractFactory {
 
     private static final Predicate<PrivateClient> PREDICATE_PRIVATE_CLIENT = (c) -> true;
-    private static final Predicate<ProfessionalClient> PREDICATE_PROFESSIONAL_CLIENT_REVENUE_LESS_100000 = (c) -> c.getAnnualRevenue() < 100000;
+    private static final Predicate<ProfessionalClient> PREDICATE_PRO_CLIENT_REVENUE_LESS_THAN_1M = (c) -> c.getAnnualRevenue() < 1000000;
 
     private static final Map<Energy, Map<Class<? extends Client>, Map<Predicate<? extends Client>, Float>>> PRICE_MATRIX = Map.of(
             Energy.ELECTRICITY, Map.of(
@@ -15,8 +15,8 @@ public class ContractFactory {
                             PREDICATE_PRIVATE_CLIENT, 0.133F
                     ),
                     ProfessionalClient.class, Map.of(
-                            PREDICATE_PROFESSIONAL_CLIENT_REVENUE_LESS_100000, 0.112F,
-                            PREDICATE_PROFESSIONAL_CLIENT_REVENUE_LESS_100000.negate(), 0.110F
+                            PREDICATE_PRO_CLIENT_REVENUE_LESS_THAN_1M, 0.112F,
+                            PREDICATE_PRO_CLIENT_REVENUE_LESS_THAN_1M.negate(), 0.110F
                     )
             ),
             Energy.GAS, Map.of(
@@ -24,8 +24,8 @@ public class ContractFactory {
                             PREDICATE_PRIVATE_CLIENT, 0.108F
                     ),
                     ProfessionalClient.class, Map.of(
-                            PREDICATE_PROFESSIONAL_CLIENT_REVENUE_LESS_100000, 0.117F,
-                            PREDICATE_PROFESSIONAL_CLIENT_REVENUE_LESS_100000.negate(), 0.112F
+                            PREDICATE_PRO_CLIENT_REVENUE_LESS_THAN_1M, 0.117F,
+                            PREDICATE_PRO_CLIENT_REVENUE_LESS_THAN_1M.negate(), 0.112F
                     )
             )
     );
