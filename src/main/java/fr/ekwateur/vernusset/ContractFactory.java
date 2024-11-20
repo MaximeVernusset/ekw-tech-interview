@@ -1,41 +1,34 @@
 package fr.ekwateur.vernusset;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import java.time.Instant;
 import java.util.Map;
+import java.util.function.Predicate;
 
 public class ContractFactory {
 
-    public static final String COND_ANNUAL_REVENUE = "annualRevenue";
+    private static final Predicate<PrivateClient> PREDICATE_PRIVATE_CLIENT = (c) -> true;
+    private static final Predicate<ProfessionalClient> PREDICATE_PROFESSIONAL_CLIENT_REVENUE_LESS_100000 = (c) -> c.getAnnualRevenue() < 100000;
 
-    private static final ScriptEngine JS_ENGINE;
-    private static final Map<Energy, Map<Class<? extends Client>, Map<String, Float>>> PRICE_MATRIX = Map.of(
+    private static final Map<Energy, Map<Class<? extends Client>, Map<Predicate<? extends Client>, Float>>> PRICE_MATRIX = Map.of(
             Energy.ELECTRICITY, Map.of(
                     PrivateClient.class, Map.of(
-                            "true", 0.133F
+                            PREDICATE_PRIVATE_CLIENT, 0.133F
                     ),
                     ProfessionalClient.class, Map.of(
-                            COND_ANNUAL_REVENUE + " < 100000", 0.112F,
-                            COND_ANNUAL_REVENUE + " >= 100000", 0.110F
+                            PREDICATE_PROFESSIONAL_CLIENT_REVENUE_LESS_100000, 0.112F,
+                            PREDICATE_PROFESSIONAL_CLIENT_REVENUE_LESS_100000.negate(), 0.110F
                     )
             ),
             Energy.GAS, Map.of(
                     PrivateClient.class, Map.of(
-                            "true", 0.108F
+                            PREDICATE_PRIVATE_CLIENT, 0.108F
                     ),
                     ProfessionalClient.class, Map.of(
-                            COND_ANNUAL_REVENUE + " < 100000", 0.117F,
-                            COND_ANNUAL_REVENUE + " >= 100000", 0.112F
+                            PREDICATE_PROFESSIONAL_CLIENT_REVENUE_LESS_100000, 0.117F,
+                            PREDICATE_PROFESSIONAL_CLIENT_REVENUE_LESS_100000.negate(), 0.112F
                     )
             )
     );
-
-    static {
-        final ScriptEngineManager manager = new ScriptEngineManager();
-        JS_ENGINE = manager.getEngineByName("js");
-    }
 
     public static Contract newContract(final Client client, final Energy energy, final Instant subscriptionDate, final Instant terminationDate) {
         return new Contract(
@@ -52,22 +45,13 @@ public class ContractFactory {
                 .get(client.getClass())
                 .entrySet()
                 .stream()
-                .filter(entry -> evaluatePriceCondition(entry.getKey(), client))
+                .filter(entry -> evaluatePriceCondition((Predicate<Client>) entry.getKey(), client))
                 .findFirst()
                 .orElseThrow()
                 .getValue();
     }
 
-    private static boolean evaluatePriceCondition(final String condition, final Client client) {
-        String conditionToEvaluate = condition;
-        if (client instanceof ProfessionalClient pro) {
-            conditionToEvaluate = conditionToEvaluate.replaceAll(COND_ANNUAL_REVENUE, Double.toString(pro.getAnnualRevenue()));
-        }
-
-        try {
-            return (boolean) JS_ENGINE.eval(conditionToEvaluate);
-        } catch (final ScriptException sex) { // :p
-            throw new RuntimeException(sex);
-        }
+    private static boolean evaluatePriceCondition(final Predicate<Client> condition, final Client client) {
+        return condition.test(client);
     }
 }

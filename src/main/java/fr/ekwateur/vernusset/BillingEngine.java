@@ -22,7 +22,7 @@ public class BillingEngine {
 
     private static float computeContractBillAmount(final Contract contract, final Instant startPeriod, final Instant endPeriod) {
         final List<MeterReading> meterReadingsInPeriod = contract.getMeterReadingsBetween(startPeriod, endPeriod);
-        final float consumptionForPeriod = meterReadingsInPeriod.getLast().getIndex() - meterReadingsInPeriod.getFirst().getIndex();
+        final float consumptionForPeriod = meterReadingsInPeriod.getLast().index() - meterReadingsInPeriod.getFirst().index();
         return consumptionForPeriod * contract.getKwtPrice();
     }
 
